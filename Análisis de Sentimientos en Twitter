@@ -1,0 +1,83 @@
+# A continuación, te presento un código básico en Python que utiliza las bibliotecas NLTK y Scikit-learn para realizar un análisis de sentimientos en tweets. Este ejemplo incluye la recolección de datos desde Twitter utilizando la biblioteca tweepy, el procesamiento del texto con NLTK y la clasificación del sentimiento con un modelo de aprendizaje automático.
+# Requisitos Previos
+# Antes de ejecutar el código, asegúrate de tener instaladas las siguientes bibliotecas:
+
+pip install tweepy nltk scikit-learn pandas
+
+# Además, necesitarás crear una cuenta de desarrollador en Twitter y obtener tus credenciales API (API key, API secret key, Access token y Access token secret).
+
+import tweepy
+import pandas as pd
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, accuracy_score
+
+# Configuración de las credenciales de Twitter
+API_KEY = 'tu_api_key'
+API_SECRET_KEY = 'tu_api_secret_key'
+ACCESS_TOKEN = 'tu_access_token'
+ACCESS_TOKEN_SECRET = 'tu_access_token_secret'
+
+# Autenticación en Twitter
+auth = tweepy.OAuthHandler(API_KEY, API_SECRET_KEY)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api = tweepy.API(auth)
+
+# Función para recolectar tweets
+def obtener_tweets(palabra_clave, cantidad):
+    tweets = tweepy.Cursor(api.search_tweets, q=palabra_clave, lang='es').items(cantidad)
+    return [tweet.text for tweet in tweets]
+
+# Recolectar tweets sobre un tema específico
+tweets = obtener_tweets('tu_tema', 100)
+
+# Preprocesamiento de texto
+def preprocesar_texto(texto):
+    tokens = word_tokenize(texto.lower())
+    stop_words = set(stopwords.words('spanish'))
+    return ' '.join([word for word in tokens if word.isalpha() and word not in stop_words])
+
+tweets_procesados = [preprocesar_texto(tweet) for tweet in tweets]
+
+# Crear un DataFrame
+df = pd.DataFrame({'tweet': tweets_procesados})
+
+# Etiquetar los datos (esto es solo un ejemplo; en un caso real necesitarías un conjunto de datos etiquetado)
+df['sentimiento'] = ['positivo' if i % 2 == 0 else 'negativo' for i in range(len(df))]  # Etiquetas ficticias
+
+# Dividir los datos en entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(df['tweet'], df['sentimiento'], test_size=0.2, random_state=42)
+
+# Crear el modelo de clasificación
+modelo = make_pipeline(CountVectorizer(), MultinomialNB())
+modelo.fit(X_train, y_train)
+
+# Predicción y evaluación del modelo
+predicciones = modelo.predict(X_test)
+print(classification_report(y_test, predicciones))
+print(f'Precisión: {accuracy_score(y_test, predicciones)}')
+
+# Ejemplo de predicción para nuevos tweets
+nuevos_tweets = ['Me encanta este producto', 'No estoy satisfecho con el servicio']
+nuevos_tweets_procesados = [preprocesar_texto(tweet) for tweet in nuevos_tweets]
+predicciones_nuevas = modelo.predict(nuevos_tweets_procesados)
+
+for tweet, sentimiento in zip(nuevos_tweets, predicciones_nuevas):
+    print(f'Tweet: {tweet} - Sentimiento: {sentimiento}')
+
+# Explicación del Código
+
+# Autenticación en Twitter: Se configura la autenticación utilizando las credenciales de la API de Twitter.
+# Recolección de Tweets: Se define una función para obtener tweets relacionados con una palabra clave específica.
+# Preprocesamiento: Se procesan los textos eliminando stop words y convirtiendo a minúsculas.
+# Modelo de Clasificación: Se utiliza un clasificador Naive Bayes junto con un vectorizador para transformar el texto en una representación numérica.
+# Evaluación: Se evalúa el modelo utilizando métricas como precisión y reporte de clasificación.
+# Predicción: Se muestra cómo predecir el sentimiento de nuevos tweets.
+
+# Consideraciones
+# Este código utiliza etiquetas ficticias para los sentimientos. En un entorno real, necesitarías un conjunto de datos etiquetado adecuadamente para entrenar tu modelo.
+# Asegúrate de manejar adecuadamente las credenciales y respetar las políticas de uso de la API de Twitter.
