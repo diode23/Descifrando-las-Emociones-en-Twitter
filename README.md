@@ -143,6 +143,3 @@ Este proyecto está bajo la [Licencia MIT](LICENSE). ¡Siéntete libre de usarlo
 ---
 
 **Hecho con ❤️ para la comunidad Data Science en español**
-```
-
-¿Te gustaría que ajuste alguna sección específica o agregue más detalles técnicos sobre el modelo de machine learning?
